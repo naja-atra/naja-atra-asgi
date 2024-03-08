@@ -21,7 +21,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "naja_atra>=1.0.0"
+    "naja-atra"
 ]
 dynamic = ["version"]
 
