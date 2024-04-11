@@ -14,7 +14,7 @@ import uvicorn
 from threading import Thread
 from naja_atra.utils.logger import get_logger, set_level
 from naja_atra_asgi import ASGIProxy
-from naja_atra_asgi import asgi_proxy
+from naja_atra_asgi import config, app, app_v2
 
 set_level("DEBUG")
 
@@ -28,28 +28,15 @@ proxy: ASGIProxy = None
 init_asgi_proxy_lock: asyncio.Lock = asyncio.Lock()
 
 
-async def init_asgi_proxy():
-    global proxy
-    if proxy == None:
-        async with init_asgi_proxy_lock:
-            if proxy == None:
-                _logger.info("init asgi proxy... ")
-                server.scan(base_dir="tests/ctrls", regx=r'.*controllers.*')
-                proxy = asgi_proxy(
-                    resources={"/public/*": f"{PROJECT_ROOT}/tests/static",
-                               "/*": f"{PROJECT_ROOT}/tests/static"})
-
-
-async def asgi_app(scope, receive, send):
-    await init_asgi_proxy()
-    await proxy.app_proxy(scope, receive, send)
-
-
 def start_server_uvicorn():
-    config = uvicorn.Config("debug_main:asgi_app",
-                            host="0.0.0.0", port=9090, log_level="info")
+    server.scan(base_dir="tests/ctrls", regx=r'.*controllers.*', project_dir=PROJECT_ROOT)
+    config(
+        resources={"/public/*": f"{PROJECT_ROOT}/tests/static",
+                   "/*": f"{PROJECT_ROOT}/tests/static"})
+    uvicon_conf = uvicorn.Config(app_v2,
+                                 host="0.0.0.0", port=9090, log_level="info")
     global asgi_server
-    asgi_server = uvicorn.Server(config)
+    asgi_server = uvicorn.Server(uvicon_conf)
     asgi_server.run()
 
 
@@ -61,10 +48,18 @@ async def stop():
     return "<!DOCTYPE html><html><head><title>关闭</title></head><body>关闭成功！</body></html>"
 
 
+def shutdown():
+    global asgi_server
+    if asgi_server:
+        _logger.info("Shutdown the wsgi server...")
+        asyncio.run(asgi_server.shutdown())
+        asgi_server = None
+
+
 def on_sig_term(signum, frame):
     if asgi_server:
         _logger.info(f"Receive signal [{signum}], shutdown the wsgi server...")
-        Thread(target=asgi_server.shutdown).start()
+        Thread(target=shutdown).start()
 
 
 if __name__ == "__main__":

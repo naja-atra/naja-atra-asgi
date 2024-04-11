@@ -28,10 +28,10 @@ import io
 
 from typing import Any, Dict, List, Tuple, Union, Coroutine
 from http import HTTPStatus
-from naja_atra.request_handlers.http_request_handler import HTTPRequestHandler
+from naja_atra.request_handlers.http_controller_handler import HTTPControllerHandler
 from naja_atra.utils import http_utils
 from naja_atra.utils.logger import get_logger
-from naja_atra.request_handlers.websocket_request_handler import *
+from naja_atra.request_handlers.websocket_controller_handler import *
 
 _logger = get_logger("naja_atra.request_handlers.asgi_request_server")
 
@@ -114,7 +114,7 @@ class ASGIRequestHandler:
                     if not recv.get("more_body", False):
                         self.req_body_read = True
                         break
-            handler = HTTPRequestHandler(self, environment=self.scope)
+            handler = HTTPControllerHandler(self, environment=self.scope)
             await handler.handle_request()
 
             res_headers: List[List] = []
@@ -224,7 +224,7 @@ class ASGIRequestHandler:
             self.write(body)
 
 
-class ASGIWebsocketRequestHandler(WebsocketRequestHandler):
+class ASGIWebsocketRequestHandler(WebsocketControllerHandler):
 
     def __init__(self, http_protocol_handler: ASGIRequestHandler) -> None:
         super().__init__(http_protocol_handler)
