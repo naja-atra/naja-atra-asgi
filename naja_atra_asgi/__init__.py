@@ -9,7 +9,7 @@ from naja_atra.http_servers.routing_server import RoutingServer
 from naja_atra.request_handlers.http_session_local_impl import LocalSessionFactory
 from .asgi_request_handler import ASGIRequestHandler
 
-version = "1.0.0"
+version = "1.0.1"
 
 
 class ASGIProxy(RoutingServer):

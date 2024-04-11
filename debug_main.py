@@ -29,12 +29,13 @@ init_asgi_proxy_lock: asyncio.Lock = asyncio.Lock()
 
 
 def start_server_uvicorn():
-    server.scan(base_dir="tests/ctrls", regx=r'.*controllers.*', project_dir=PROJECT_ROOT)
+    server.scan(base_dir="tests/ctrls", regx=r'.*controllers.*',
+                project_dir=PROJECT_ROOT)
     config(
         resources={"/public/*": f"{PROJECT_ROOT}/tests/static",
                    "/*": f"{PROJECT_ROOT}/tests/static"})
-    uvicon_conf = uvicorn.Config(app_v2,
-                                 host="0.0.0.0", port=9090, log_level="info")
+    uvicon_conf = uvicorn.Config(
+        app, host="0.0.0.0", port=9090, log_level="info")
     global asgi_server
     asgi_server = uvicorn.Server(uvicon_conf)
     asgi_server.run()
@@ -60,12 +61,6 @@ def on_sig_term(signum, frame):
     if asgi_server:
         _logger.info(f"Receive signal [{signum}], shutdown the wsgi server...")
         Thread(target=shutdown).start()
-
-
-if __name__ == "__main__":
-    signal.signal(signal.SIGTERM, on_sig_term)
-    signal.signal(signal.SIGINT, on_sig_term)
-    start_server_uvicorn()
 
 
 if __name__ == "__main__":
