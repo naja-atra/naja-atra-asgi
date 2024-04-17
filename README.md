@@ -8,7 +8,6 @@ Take `uvicorn` as an example.
 
 ```python
 import uvicorn
-There is a legacy application
 from naja_atra import route
 from naja_atra_asgi import app
 
